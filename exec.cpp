@@ -1,12 +1,12 @@
 #include "exec.h"
 
-Exec::Exec(QString pid, QString delay, QObject *parent) : QObject(parent)
+ExecTask::ExecTask(QString pid, QString delay) : QRunnable()
 {
     this->pid = pid;
     this->delay = delay;
 }
 
-void Exec::start()
+void ExecTask::start()
 {
     this->stop = false;
     QProcess top;
@@ -15,23 +15,30 @@ void Exec::start()
     connect(&grep, SIGNAL(readyReadStandardOutput()), this, SLOT(dataAvalible()));
     top.start("top -b -p " + this->pid + " -d " + this->delay);
     grep.start("grep "+this->pid);
+    grep.waitForFinished(-1);
 }
 
-void Exec::doStop()
+void ExecTask::doStop()
 {
     this->stop = true;
 }
 
-QStringList Exec::getResults() const
+void ExecTask::run()
+{
+    start();
+}
+
+QStringList ExecTask::getResults() const
 {
     return results;
 }
 
-void Exec::dataAvalible()
+void ExecTask::dataAvalible()
 {
     QProcess* proc = (QProcess*)sender();
     while(proc->canReadLine() && !this->stop) {
         this->results << proc->readLine();
+
     }
     if(this->stop) {
         proc->kill();
@@ -39,7 +46,7 @@ void Exec::dataAvalible()
     }
 }
 
-QString Exec::getPid() const
+QString ExecTask::getPid() const
 {
     return pid;
 }

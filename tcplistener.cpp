@@ -15,7 +15,12 @@ void TcpListener::start(quint16 port)
 
 void TcpListener::monitorRes()
 {
-    qDebug() << this->monitor->getList();
+    QTextStream os(stdout);
+    foreach(QString pid, this->monitor->getList().keys()) {
+        foreach(QString val , this->monitor->getList().value(pid)) {
+            os << pid << ":" << val.replace(QRegularExpression("\\s+"), " ").split(' ').at(6) << endl;
+        }
+    }
 }
 
 void TcpListener::newClient()
@@ -32,14 +37,22 @@ void TcpListener::clientDataRead()
     while(socket->canReadLine()) {
         QString str = socket->readLine().replace("\r\n", "");
         if(str == "start") {
-            QString pid = socket->readLine().replace("\r\n", "");
             socket->waitForReadyRead();
-            this->monitor->setPids(QStringList() << pid);
+            QString pid = socket->readLine().replace("\r\n", "");
+            this->monitor->setPids(pid.split(';'));
             this->monitor->startMonitor();
         }
         else if(str == "stop") {
             this->monitor->stopMonitor();
 
+        }
+        else if(str == "getresult") {
+            QTextStream os(socket);
+            foreach(QString pid, this->monitor->getList().keys()) {
+                foreach(QString val , this->monitor->getList().value(pid)) {
+                    os << pid << ":" << val.replace(QRegularExpression("\\s+"), " ").split(' ').at(6) << endl;
+                }
+            }
         }
     }
 }

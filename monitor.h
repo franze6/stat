@@ -2,8 +2,8 @@
 #define MONITOR_H
 
 #include <QObject>
-#include "executor.h"
-#include <QThread>
+#include "exec.h"
+#include <QThreadPool>
 #include <QMap>
 
 class Monitor : public QObject
@@ -21,7 +21,7 @@ public:
 
 private:
     QStringList pids;
-    QMap<QString, Exec*> execs;
+    QMap<QString, ExecTask*> execs;
     QMap<QString, QStringList> list;
 
 signals:

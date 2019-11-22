@@ -3,13 +3,15 @@
 
 #include <QObject>
 #include <QProcess>
+#include <QRunnable>
 
-class Exec : public QObject
+class ExecTask : public QObject,public QRunnable
 {
     Q_OBJECT
 public:
-    explicit Exec(QString pid, QString delay, QObject *parent = nullptr);
+    explicit ExecTask(QString pid, QString delay);
     void doStop();
+    void run() override;
 
     QStringList getResults() const;
     QString getPid() const;

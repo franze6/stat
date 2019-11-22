@@ -7,13 +7,14 @@ Monitor::Monitor(QObject *parent) : QObject(parent)
 void Monitor::startMonitor()
 {
     foreach (QString val, this->getPids()) {
-        Exec* exec = new Exec(val, "0,001", this);
+        ExecTask* exec = new ExecTask(val, "0,1");
+        exec->setAutoDelete(true);
         this->execs.insert(val, exec);
-        QThread *thread = new QThread();
-        connect(thread, SIGNAL(started()), exec, SLOT(start()));
+        //connect(thread, SIGNAL(started()), exec, SLOT(start()));
         connect(exec, SIGNAL(finishedP()), this, SLOT(execFinished()));
-        exec->moveToThread(thread);
-        thread->start();
+        QThreadPool::globalInstance()->start(exec);
+        //exec->moveToThread(thread);
+        //thread->start();
     }
 }
 
@@ -29,8 +30,14 @@ void Monitor::setPids(const QStringList &value)
 
 void Monitor::stopMonitor()
 {
-    foreach(Exec* exec, this->execs) {
+    /*foreach(ExecTask* exec, this->execs) {
         exec->doStop();
+    }*/
+    foreach(ExecTask* exec, this->execs)
+    {
+        this->list.insert(exec->getPid(), exec->getResults());
+        QThreadPool::globalInstance()->clear();
+        if(this->list.size() == this->execs.size()) emit monitorFinished();
     }
 }
 
@@ -41,7 +48,7 @@ QMap<QString, QStringList> Monitor::getList() const
 
 void Monitor::execFinished()
 {
-    Exec* exec = (Exec*)sender();
+    ExecTask* exec = (ExecTask*)sender();
     this->list.insert(exec->getPid(), exec->getResults());
     if(this->list.size() == this->execs.size()) emit monitorFinished();
 }

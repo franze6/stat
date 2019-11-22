@@ -6,6 +6,7 @@
 #include <QTcpSocket>
 #include <QString>
 #include "monitor.h"
+#include <QRegularExpression>
 class TcpListener : public QObject
 {
     Q_OBJECT
