@@ -19,8 +19,12 @@ public:
 
     QMap<QString, QStringList> getList() const;
 
+    QString getFreq() const;
+    void setFreq(const QString &value);
+
 private:
     QStringList pids;
+    QString freq;
     QMap<QString, ExecTask*> execs;
     QMap<QString, QStringList> list;
 

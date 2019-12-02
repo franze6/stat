@@ -15,12 +15,6 @@ void TcpListener::start(quint16 port)
 
 void TcpListener::monitorRes()
 {
-    QTextStream os(stdout);
-    foreach(QString pid, this->monitor->getList().keys()) {
-        foreach(QString val , this->monitor->getList().value(pid)) {
-            os << pid << ":" << val.replace(QRegularExpression("\\s+"), " ").split(' ').at(6) << endl;
-        }
-    }
 }
 
 void TcpListener::newClient()
@@ -35,24 +29,30 @@ void TcpListener::clientDataRead()
 {
     QTcpSocket* socket = (QTcpSocket*)sender();
     while(socket->canReadLine()) {
-        QString str = socket->readLine().replace("\r\n", "");
-        if(str == "start") {
-            socket->waitForReadyRead();
-            QString pid = socket->readLine().replace("\r\n", "");
+        QString str = socket->readLine().replace("\n", "").replace("\r", "");
+        if(str.contains("start")) {
+            QString pid = str.split(":").at(1);
             this->monitor->setPids(pid.split(';'));
             this->monitor->startMonitor();
         }
+        else if(str.contains("freq")) {
+            QString freq = str.split(":").at(1);
+            this->monitor->setFreq(freq);
+        }
         else if(str == "stop") {
             this->monitor->stopMonitor();
-
         }
         else if(str == "getresult") {
             QTextStream os(socket);
+            QTextStream out(stdout);
             foreach(QString pid, this->monitor->getList().keys()) {
                 foreach(QString val , this->monitor->getList().value(pid)) {
-                    os << pid << ":" << val.replace(QRegularExpression("\\s+"), " ").split(' ').at(6) << endl;
+                    QStringList tmp = val.replace(QRegularExpression("\\s+"), " ").split(' ');
+                    os << tmp.at(1) << ":" << tmp.at(6) << ";";
+                    out << tmp.at(1) << ":" << tmp.at(6) << ";";
                 }
             }
+            socket->close();
         }
     }
 }

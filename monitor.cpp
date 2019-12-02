@@ -2,12 +2,13 @@
 
 Monitor::Monitor(QObject *parent) : QObject(parent)
 {
+    this->setFreq("0,001");
 }
 
 void Monitor::startMonitor()
 {
     foreach (QString val, this->getPids()) {
-        ExecTask* exec = new ExecTask(val, "0,1");
+        ExecTask* exec = new ExecTask(val, getFreq());
         exec->setAutoDelete(true);
         this->execs.insert(val, exec);
         //connect(thread, SIGNAL(started()), exec, SLOT(start()));
@@ -35,6 +36,7 @@ void Monitor::stopMonitor()
     }*/
     foreach(ExecTask* exec, this->execs)
     {
+        exec->killAll();
         this->list.insert(exec->getPid(), exec->getResults());
         QThreadPool::globalInstance()->clear();
         if(this->list.size() == this->execs.size()) emit monitorFinished();
@@ -44,6 +46,16 @@ void Monitor::stopMonitor()
 QMap<QString, QStringList> Monitor::getList() const
 {
     return list;
+}
+
+QString Monitor::getFreq() const
+{
+    return freq;
+}
+
+void Monitor::setFreq(const QString &value)
+{
+    freq = value;
 }
 
 void Monitor::execFinished()

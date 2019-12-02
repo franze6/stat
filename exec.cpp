@@ -9,13 +9,14 @@ ExecTask::ExecTask(QString pid, QString delay) : QRunnable()
 void ExecTask::start()
 {
     this->stop = false;
-    QProcess top;
-    QProcess grep;
-    top.setStandardOutputProcess(&grep);
-    connect(&grep, SIGNAL(readyReadStandardOutput()), this, SLOT(dataAvalible()));
-    top.start("top -b -p " + this->pid + " -d " + this->delay);
-    grep.start("grep "+this->pid);
-    grep.waitForFinished(-1);
+    top = new QProcess();
+    grep = new QProcess();
+    top->setStandardOutputProcess(grep);
+    top->setParent(grep);
+    connect(grep, SIGNAL(readyReadStandardOutput()), this, SLOT(dataAvalible()));
+    top->start("top -b -p " + this->pid + " -d " + this->delay);
+    grep->start("grep "+this->pid);
+    grep->waitForFinished(-1);
 }
 
 void ExecTask::doStop()
@@ -26,6 +27,12 @@ void ExecTask::doStop()
 void ExecTask::run()
 {
     start();
+}
+
+void ExecTask::killAll()
+{
+    grep->kill();
+    top->kill();
 }
 
 QStringList ExecTask::getResults() const
@@ -41,7 +48,6 @@ void ExecTask::dataAvalible()
 
     }
     if(this->stop) {
-        proc->kill();
         emit finishedP();
     }
 }

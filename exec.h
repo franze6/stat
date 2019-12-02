@@ -12,6 +12,7 @@ public:
     explicit ExecTask(QString pid, QString delay);
     void doStop();
     void run() override;
+    void killAll();
 
     QStringList getResults() const;
     QString getPid() const;
@@ -19,6 +20,8 @@ public slots:
     void dataAvalible();
     void start();
 private:
+    QProcess* top;
+    QProcess* grep;
     QString pid;
     QString delay;
     QStringList results;
