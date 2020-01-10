@@ -9,6 +9,7 @@ ExecTask::ExecTask(QString pid, QString delay) : QRunnable()
 void ExecTask::start()
 {
     this->stop = false;
+    this->pause = false;
     top = new QProcess();
     grep = new QProcess();
     top->setStandardOutputProcess(grep);
@@ -31,8 +32,15 @@ void ExecTask::run()
 
 void ExecTask::killAll()
 {
-    grep->kill();
-    top->kill();
+    this->top->kill();
+    this->grep->kill();
+}
+
+void ExecTask::restart()
+{
+    top->start("top -b -p " + this->pid + " -d " + this->delay);
+    grep->start("grep "+this->pid);
+    grep->waitForFinished(-1);
 }
 
 QStringList ExecTask::getResults() const
@@ -45,7 +53,6 @@ void ExecTask::dataAvalible()
     QProcess* proc = (QProcess*)sender();
     while(proc->canReadLine() && !this->stop) {
         this->results << proc->readLine();
-
     }
     if(this->stop) {
         emit finishedP();
@@ -55,4 +62,14 @@ void ExecTask::dataAvalible()
 QString ExecTask::getPid() const
 {
     return pid;
+}
+
+QString ExecTask::getDelay() const
+{
+    return delay;
+}
+
+void ExecTask::setDelay(const QString &value)
+{
+    delay = value;
 }

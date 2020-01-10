@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QProcess>
 #include <QRunnable>
+#include <QDebug>
 
 class ExecTask : public QObject,public QRunnable
 {
@@ -11,11 +12,15 @@ class ExecTask : public QObject,public QRunnable
 public:
     explicit ExecTask(QString pid, QString delay);
     void doStop();
-    void run() override;
+    void run();
     void killAll();
+    void restart();
 
     QStringList getResults() const;
     QString getPid() const;
+    QString getDelay() const;
+    void setDelay(const QString &value);
+
 public slots:
     void dataAvalible();
     void start();
@@ -26,6 +31,7 @@ private:
     QString delay;
     QStringList results;
     bool stop;
+    bool pause;
 
 signals:
     void finishedP();

@@ -16,9 +16,10 @@ public:
     void setPids(const QStringList &value);
 
     void stopMonitor();
+    void pauseMonitor();
+    void continueMonitor();
 
-    QMap<QString, QStringList> getList() const;
-
+    QMap<QString, QStringList> getList();
     QString getFreq() const;
     void setFreq(const QString &value);
 

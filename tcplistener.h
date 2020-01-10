@@ -17,6 +17,9 @@ public:
 
 private:
     Monitor* monitor;
+    void initMonitor();
+    QMap<QString, QStringList> results;
+    QString freq;
 
 signals:
 

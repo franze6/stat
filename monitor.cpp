@@ -11,11 +11,8 @@ void Monitor::startMonitor()
         ExecTask* exec = new ExecTask(val, getFreq());
         exec->setAutoDelete(true);
         this->execs.insert(val, exec);
-        //connect(thread, SIGNAL(started()), exec, SLOT(start()));
         connect(exec, SIGNAL(finishedP()), this, SLOT(execFinished()));
         QThreadPool::globalInstance()->start(exec);
-        //exec->moveToThread(thread);
-        //thread->start();
     }
 }
 
@@ -31,19 +28,32 @@ void Monitor::setPids(const QStringList &value)
 
 void Monitor::stopMonitor()
 {
-    /*foreach(ExecTask* exec, this->execs) {
-        exec->doStop();
-    }*/
     foreach(ExecTask* exec, this->execs)
     {
         exec->killAll();
         this->list.insert(exec->getPid(), exec->getResults());
-        QThreadPool::globalInstance()->clear();
         if(this->list.size() == this->execs.size()) emit monitorFinished();
     }
 }
 
-QMap<QString, QStringList> Monitor::getList() const
+void Monitor::pauseMonitor()
+{
+        foreach(ExecTask* exec, this->execs)
+        {
+            exec->killAll();
+            this->list.insert(exec->getPid(), exec->getResults());
+        }
+
+}
+
+void Monitor::continueMonitor()
+{
+    foreach (ExecTask* exec, this->execs) {
+        exec->restart();
+    }
+}
+
+QMap<QString, QStringList> Monitor::getList()
 {
     return list;
 }
