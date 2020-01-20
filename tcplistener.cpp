@@ -16,7 +16,7 @@ void TcpListener::initMonitor()
 {
     this->monitor = new Monitor();
     this->monitor->setFreq(this->freq);
-    connect(this->monitor, SIGNAL(monitorFinished()), this, SLOT(monitorRes()));
+    //connect(this->monitor, SIGNAL(monitorFinished()), this, SLOT(monitorRes()));
 }
 
 void TcpListener::monitorRes()
@@ -60,9 +60,16 @@ void TcpListener::clientDataRead()
         }
         else if(str == "stop") {
             this->monitor->stopMonitor();
+            this->monitorRes();
         }
         else if(str == "pause") {
             this->monitor->stopMonitor();
+            this->monitorRes();
+            foreach(QString pid, this->results.keys()) {
+                QStringList tmp = this->results.value(pid);
+                tmp << "pause";
+                this->results.insert(pid, tmp);
+            }
         }
         else if(str == "continue") {
             this->initMonitor();
@@ -73,10 +80,17 @@ void TcpListener::clientDataRead()
             QTextStream os(socket);
             QTextStream out(stdout);
             foreach(QString pid, this->results.keys()) {
-                foreach(QString val , this->results.value(pid)) {
+                int annotation = 0;
+                foreach(QString val , this->results.value(pid)) {                    
+                    if(val == "pause") {
+                        annotation = 1;
+                        continue;
+                    }
                     QStringList tmp = val.replace(QRegularExpression("\\s+"), " ").split(' ');
-                    os << tmp.at(0) << ":" << tmp.at(5) << ";";
-                    out << tmp.at(0) << ":" << tmp.at(5) << ";";
+
+                    os << tmp.at(0) << ":" << tmp.at(5) << ":" << annotation << ";";
+                    out << tmp.at(0) << ":" << tmp.at(5) << ":" << annotation << ";";
+                    annotation = 0;
                 }
             }
             this->results.clear();
